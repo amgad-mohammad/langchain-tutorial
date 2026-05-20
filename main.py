@@ -1,4 +1,6 @@
 import ollama
+from openai import OpenAI
+import os
 
 def main():
     #---Ollama SDK---
@@ -6,8 +8,20 @@ def main():
     'role': 'user',
     'content': 'Why is the sky blue?',}])
     print(response['message']['content'])
+
     # ---OpenAI SDK---
-    
+    openAIAPIKey= os.environ.get('OPENAI_API_KEY')
+    # The client looks for an OPENAI_API_KEY environment variable by default(optional to pass it)
+    client = OpenAI(apiKey=openAIAPIKey)
+    completion = client.chat.completions.create(
+        model="gpt-4o",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": "Why is the sky blue?"}
+        ]
+    )
+    print(completion.choices[0].message.content)
+
 
 
 if __name__ == '__main__':
