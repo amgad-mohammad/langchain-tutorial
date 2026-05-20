@@ -33,7 +33,7 @@ def llm_call_using_langchain_ollama_sdk():
     print(response.content)
 
 def llm_call_using_langchain_chat_models():
-    ollama_llm= init_chat_model(model='qwen2.5:3b',temperature=0)
+    ollama_llm= init_chat_model(model='qwen2.5:3b',model_provider="ollama",temperature=0)
     response= ollama_llm.invoke('Why is the sky blue?') #AIMessage
     print(response.content)
 
