@@ -1,9 +1,10 @@
 import ollama
 from openai import OpenAI
+from langchain_ollama import ChatOllama
 import os
 
 def main():
-    llm_call_using_ollama_sdk()
+    llm_call_using_langchain_ollama_sdk()
 
 def llm_call_using_ollama_sdk():
     response =ollama.chat(model='qwen2.5:3b',messages=[{
@@ -23,6 +24,12 @@ def llm_call_using_openai_sdk():
         ]
     )
     print(completion.choices[0].message.content)
+
+
+def llm_call_using_langchain_ollama_sdk():
+    ollama_llm=ChatOllama(model='qwen2.5:3b',temperature=0)
+    response= ollama_llm.invoke('Why is the sky blue?') #AIMessage
+    print(response.content)
 
 
 if __name__ == '__main__':
