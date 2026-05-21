@@ -2,6 +2,10 @@
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama import ChatOllama
 from pydantic import BaseModel,Field
+from typing import TypedDict
+
+
+###### Non-Structured Output#########
 
 def enforce_output_format():
 
@@ -23,14 +27,23 @@ def enforce_output_format():
     print(llm_response.content)
 
 
-    ######Structured Output(schema) using Pydantic Library#########
+    ######Structured Output(schema) using Pydantic Library#########  : if any mistake happens in defining your schema it will not accept that(pydantic_core._pydantic_core.ValidationError at runtime)
+    # Use case : restricted output and best for final output
 
-class LLMSchema(BaseModel):
+class LLMPydanticSchema(BaseModel):
       framework_name: str = Field(description="This is the Framework name the user asks about")
       creator_name: str = Field(description="This is the Creator name who created the framework")
     # to use this llm_schema, you have to pass these exact values with the defined data types otherwise, the LLM will not be able to create object of this class
     # feed the Schema with a description also to help it
 
+
+class LLMTypedDictSchema(TypedDict):
+    framework_name: str
+    creator_name: str
+
+
+# to use this llm_schema, you have to pass these exact values with the defined data types otherwise, the LLM will not be able to create object of this class
+# feed the Schema with a description also to help it
 def enforce_pydantic_schema():
 
     user_input = input("Enter the framework name:")
@@ -47,10 +60,35 @@ def enforce_pydantic_schema():
     )
     final_prompt_template = prompt_template.invoke({"framework": user_input})
     ollama_llm = ChatOllama(model='qwen2.5:3b', temperature=0)
-    llm_structured_response= ollama_llm.with_structured_output(LLMSchema)
-    llm_response = llm_structured_response.invoke(final_prompt_template) #llm_response is of type LLMSchema, we can use its fields
+    llm_structured_response= ollama_llm.with_structured_output(LLMPydanticSchema)
+    llm_response = llm_structured_response.invoke(final_prompt_template) #llm_response is of type LLMPydanticSchema, we can use its fields
+    print(llm_response.creator_name)
+    print(llm_response)
+
+
+######Structured Output(schema) using TypedDict Library######### : if any mistake happens in defining your schema it will accept
+# Use case : non-restricted output and best for intermediate context
+def enforce_typed_dict_schema():
+
+    user_input = input("Enter the framework name:")
+    # this is finally converted to System & Human Messages
+    #############Goal############ : make sure we always get the same response format
+    # we direct the LLM to return the result in a specific format (return the result in this format key)
+    #it is easy here,but in case the prompt message is too large and complex it will not easy and trusted to direct LLM
+    #############Solution############ : using Pydantic Models through pydantic library
+
+    prompt_template = ChatPromptTemplate.from_messages(
+        [("system", 'You are a helpful assistant for answering technology questions'),
+         ("user", 'Who is the creator of {framework}?'),
+         ]
+    )
+    final_prompt_template = prompt_template.invoke({"framework": user_input})
+    ollama_llm = ChatOllama(model='qwen2.5:3b', temperature=0)
+    llm_structured_response= ollama_llm.with_structured_output(LLMTypedDictSchema)
+    llm_response = llm_structured_response.invoke(final_prompt_template) #llm_response is of type LLMTypedDictSchema, we can use its fields
     print(llm_response.creator_name)
     print(llm_response)
 
 if __name__ == '__main__':
-    enforce_pydantic_schema()
+    obj = LLMTypedDictSchema(framework_names="Java", creator_name="Amgad")
+    print(obj)
